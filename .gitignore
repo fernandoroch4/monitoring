@@ -1,0 +1,5 @@
+.venv
+.vscode
+grafana/
+mysql/
+percona_pmm_server/
