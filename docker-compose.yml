@@ -1,67 +1,66 @@
 version: '3.8'
 
 networks:
-  net:
-    driver: bridge
+  lab:
 
 volumes:
   app_data: {}
 
 services:
 
-  node-exporter:
-    image: prom/node-exporter:latest
-    container_name: node-exporter
-    restart: unless-stopped
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-      - /:/host:ro,rslave
-    command:
-      - '--path.rootfs=/host'
-      - '--path.procfs=/host/proc' 
-      - '--path.sysfs=/host/sys'
-      - --collector.filesystem.ignored-mount-points
-      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
-    ports:
-      - 9100:9100
-    networks:
-      - net
+  # node-exporter:
+  #   image: prom/node-exporter:latest
+  #   container_name: node-exporter
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /proc:/host/proc:ro
+  #     - /sys:/host/sys:ro
+  #     - /:/rootfs:ro
+  #     - /:/host:ro,rslave
+  #   command:
+  #     - '--path.rootfs=/host'
+  #     - '--path.procfs=/host/proc' 
+  #     - '--path.sysfs=/host/sys'
+  #     - --collector.filesystem.ignored-mount-points
+  #     - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+  #   ports:
+  #     - 9100:9100
+  #   networks:
+  #     - net
 
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    restart: unless-stopped
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - app_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--web.enable-lifecycle'
-    ports:
-      - 9090:9090
-    networks:
-      - net
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: prometheus
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./prometheus.yml:/etc/prometheus/prometheus.yml
+  #     - app_data:/prometheus
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #     - '--storage.tsdb.path=/prometheus'
+  #     - '--web.console.libraries=/etc/prometheus/console_libraries'
+  #     - '--web.console.templates=/etc/prometheus/consoles'
+  #     - '--web.enable-lifecycle'
+  #   ports:
+  #     - 9090:9090
+  #   networks:
+  #     - net
 
-  grafana:
-    image: grafana/grafana
-    container_name: grafana
-    restart: unless-stopped
-    volumes:
-      - ./grafana:/etc/grafana/provisioning/datasources
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=grafana
-    ports:
-      - 3000:3000
-    networks:
-      - net
-    depends_on:
-      - prometheus
+  # grafana:
+  #   image: grafana/grafana
+  #   container_name: grafana
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./grafana:/etc/grafana/provisioning/datasources
+  #   environment:
+  #     - GF_SECURITY_ADMIN_USER=admin
+  #     - GF_SECURITY_ADMIN_PASSWORD=grafana
+  #   ports:
+  #     - 3000:3000
+  #   networks:
+  #     - net
+  #   depends_on:
+  #     - prometheus
 
   db:
     image: mysql
@@ -78,7 +77,9 @@ services:
     ports:
       - 3306:3306
     networks:
-      - net
+      lab:
+        aliases:
+          - "database"
 
   adminer:
     image: adminer
@@ -87,15 +88,15 @@ services:
     ports:
       - 8080:8080
     networks:
-      - net
+      - lab
   
-  write_db:
-    build:
-      context: ./apps/write_db
-      dockerfile: Dockerfile
-    container_name: write_db
-    restart: always
-    networks:
-      - net
-    depends_on:
-      - db
+  # write_db:
+  #   build:
+  #     context: ./apps/write_db
+  #     dockerfile: Dockerfile
+  #   container_name: write_db
+  #   restart: always
+  #   depends_on:
+  #     - db
+  #   networks:
+  #     - lab
