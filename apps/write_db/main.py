@@ -66,13 +66,16 @@ def load_data(_round, worker):
         sys.exit(1)
     else:
         end = time.perf_counter() 
-        _time = round(end - start, 2)
-        bench.append([_round, worker, TOTAL_OF_ROWS, round(TOTAL_OF_ROWS / _time, 2), round(TOTAL_OF_ROWS / _time * 60, 2), _time, round(_time / 60, 2), LATENCY, TOTAL_OF_ROWS * LATENCY]),_time, round(_time / 60, 2), LATENCY, TOTAL_OF_ROWS * LATENCY
+        time_in_seconds = round(end - start, 0)
+        time_in_minutes = round(time_in_seconds / 60, 0)
+        writes_per_second = round(TOTAL_OF_ROWS / time_in_seconds, 0)
+        writes_per_minute = round(writes_per_second * 60, 0)
+        bench.append([_round, worker, TOTAL_OF_ROWS, writes_per_second, writes_per_minute, time_in_seconds, time_in_minutes, LATENCY, TOTAL_OF_ROWS * LATENCY])
 
 
 if __name__ == "__main__":
     try:
-        for _round in range(1, 21):
+        for _round in range(1, 101):
 
             start = time.perf_counter()
 
@@ -81,11 +84,14 @@ if __name__ == "__main__":
                     print(f'{datetime.now().isoformat()} - INFO - starting worker {worker}...')
                     executor.submit(load_data, _round, worker)
             end = time.perf_counter()
-            _time = round(end - start, 2)
-            _totalOfRows = TOTAL_OF_ROWS * 8
-            _rounds.append([_round, _totalOfRows, round(_totalOfRows / _time, 2),  round(_totalOfRows / _time * 60, 2), _time, round(_time / 60, 2)])
+            total_of_inserts = TOTAL_OF_ROWS * 8
+            time_in_seconds = round(end - start, 0)
+            time_in_minutes = round(time_in_seconds / 60, 0)
+            writes_per_second = round(TOTAL_OF_ROWS / time_in_seconds, 0)
+            writes_per_minute = round(writes_per_second * 60, 0)
+            _rounds.append([_round, total_of_inserts, writes_per_second, writes_per_minute, time_in_seconds, time_in_minutes])
             time.sleep(1)
-            if _round == 20:
+            if _round == 100:
                 print(tabulate(bench, headers=['Round', 'Worker', 'Inserts', 'WPS', 'WPM', 'Time (seconds)', 'Time (minutes)', 'LatencyInsert (seconds)', 'LatencyTotal (seconds)']))
         print(tabulate(_rounds, headers=['Round', 'Inserts', 'WPS', 'WPM', 'Time (seconds)', 'Time (minutes)']))
     except Exception as e:
